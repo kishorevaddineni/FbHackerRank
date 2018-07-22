@@ -1,0 +1,207 @@
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class Tourist {
+	static String filePath = "";
+	static final long vMax = (long) Math.pow(10, 12);
+	static StringBuffer output = new StringBuffer();
+
+	public static void main(String[] args) {
+		BufferedWriter bWriter = null;
+		// Check command line arg for file path
+		if (args != null && args.length > 0) {
+			// considers first arg as file path
+			filePath = args[0];
+			// File file = new File(filePath);
+		} else {
+			// argument not passed, prompt to enter file path
+			System.out.print("Enter file path to read input data: ");
+			BufferedReader cmdReader = new BufferedReader(new InputStreamReader(System.in));
+			try {
+				filePath = cmdReader.readLine();
+			} catch (IOException e) {
+				System.out.println("Error reading file path from input");
+				e.printStackTrace();
+			}
+		}
+
+		try {
+			if (filePath == null || filePath.isEmpty()) {
+				System.out.println("File path entered is empty");
+			} else {
+				BufferedReader fReader = new BufferedReader(new FileReader(filePath));
+				String line = "";
+				int lineReadStatus = 0;
+				long n = 0;
+				long t = 0;
+				long k = 0;
+				long v = 0;
+				int currentCampusIndex = 0;
+				int attractionsIndex = 0;
+				String[] attractions = null;
+				while ((line = fReader.readLine()) != null) {
+					if (lineReadStatus == 0) {
+						// Get T = number of campuses value
+						t = Integer.parseInt(line.trim());
+
+						// check constraint
+						if (t < 1 || t > 80) {
+							System.out.println("Invalid T value");
+							break;
+						}
+						lineReadStatus = 1;
+					} else if (lineReadStatus == 1) {
+						// Get N = number of attractions, K = Number of attractions to see and V =
+						// current visit number values						
+						String[] sa = line.split(" ");
+						for (int i = 0; i < 3; i++) {
+							switch (i) {
+							case 0:
+								n = Long.parseLong(sa[i]);
+								break;
+							case 1:
+								k = Long.parseLong(sa[i]);
+								break;
+							case 2:
+								v = Long.parseLong(sa[i]);
+								break;
+							}
+						}
+
+						// check constraints
+						if (n < 1 || n > 50) {
+							System.out.println("Invalid N value");
+							break;
+						}
+						if (k < 1 || k > n) {
+							System.out.println("Invalid K value");
+							break;
+						}
+						if (v < 1 || v > vMax) {
+							System.out.println("Invalid V value");
+							break;
+						}
+
+						attractions = new String[(int) n];
+						lineReadStatus++;
+						currentCampusIndex++;
+					} else {
+						// Get attractions
+						if (attractionsIndex < n) {
+							attractions[attractionsIndex] = line;
+							attractionsIndex++;
+						}
+
+						if (attractionsIndex == n) {
+							// set status and index to initial values
+							lineReadStatus = 1;
+							attractionsIndex = 0;
+							long setStartIndex = 0;
+
+							// Sort the attractions
+							if (n == k) {
+								output.append("Case #" + currentCampusIndex + ": ");
+								for (int i = 0; i < attractions.length; i++) {
+									output.append(attractions[i]);
+									if (i < attractions.length - 1) {
+										output.append(" ");
+									} else {
+										output.append("\n");
+									}
+								}
+
+							} else if (k == 1) {
+
+								if (v < n) {
+									setStartIndex = v - 1;
+								} else {
+									long a1 = v % n;
+									if (a1 == 0) {
+										setStartIndex = attractions.length - 1;
+									} else {
+										setStartIndex = a1 - 1;
+									}
+								}
+								output.append(
+										"Case #" + currentCampusIndex + ": " + attractions[(int) setStartIndex] + "\n");
+							} else {
+								// think about the condition that if k divides n
+								if ((n % k) == 0) {
+									
+									if ((v * k) < n) {
+										setStartIndex = k * (v - 1);
+									} else {
+										long a1 = (v * k) % n;
+										if (a1 == 0) {
+											setStartIndex = attractions.length - k;
+										} else {
+											setStartIndex =  a1 -k;
+										}
+									}
+								} else {
+									// Remaining cases
+									
+									setStartIndex = (k * (v - 1)) % n;
+								}
+
+								long endIndexAtEnd = setStartIndex + k;
+								output.append("Case #" + currentCampusIndex + ": ");
+								if ((setStartIndex + k) > n) {
+
+									// retrieve priority attractions first
+									long endIndex = k - (n - setStartIndex);									
+									for (int i = 0; i < endIndex; i++) {										
+										output.append(attractions[i] + " ");
+									}
+									endIndexAtEnd = attractions.length;
+								}
+								for (int i = (int) setStartIndex; i < endIndexAtEnd; i++) {
+									output.append(attractions[i]);
+									if (i < endIndexAtEnd - 1) {
+										output.append(" ");
+									} else {
+										output.append("\n");
+									}
+								}
+							}
+
+						}
+					}
+				}
+			}
+			//print output
+			System.out.println(output.toString());
+			
+			//write output to file		
+			bWriter = new BufferedWriter(new FileWriter("tourist_output_kishorevaddineni.txt"));
+		    bWriter.write(output.toString());
+		    
+		} catch (FileNotFoundException e) {
+			System.out.println("Input file not found");
+			e.printStackTrace();
+		} catch (IOException e) {
+			System.out.println("Error reading/writing data from/to file");
+			e.printStackTrace();
+		} catch (NumberFormatException nfe) {
+			System.out.println("Invalid data format in the file");
+			nfe.printStackTrace();
+		} finally {
+		    try
+		    {
+		        if ( bWriter != null)
+		        bWriter.close( );
+		    }
+		    catch ( IOException e)
+		    {
+		    	System.out.println("Error writing output to file");
+		    }
+		}
+		
+	}
+
+}
